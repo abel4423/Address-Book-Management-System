@@ -1,0 +1,128 @@
+ADDRESS BOOK MANAGEMENT SYSTEM
+Program Documentation
+
+1. INTRODUCTION
+The Address Book Management System is a menu-driven C application designed to store and manage contact details. Each contact contains a name, phone number, and email address. The program keeps contacts in an AddressBook structure in memory and uses a text file named contacts.txt to load and save records.
+
+2. OBJECTIVES
+- Create a new contact after validating its details.
+- Display all contacts stored in the address book.
+- Search for contacts by name, phone number, or email address.
+- Edit one field or all fields of a selected contact.
+- Delete a selected contact after confirmation.
+- Load saved contacts from contacts.txt and write current contacts to the file.
+
+3. TECHNOLOGIES AND LIBRARIES
+- Language: C
+- Standard headers: stdio.h for input/output, stdlib.h for exit(), and string.h for string operations.
+- Project header: contact.h, which is expected to define AddressBook, the contact structure, and MAX_CONTACTS.
+- Additional string functions: strcasecmp() and strcasestr() are used for case-insensitive comparisons/searches. These are not ISO C standard functions and may require a compatible compiler or platform.
+
+4. DATA MODEL
+The code accesses addressBook->contactCount and addressBook->contacts[i].name, addressBook->contacts[i].phone, and addressBook->contacts[i].email. Therefore, contact.h must provide a contact structure with these character arrays and an AddressBook structure containing a contacts array and a contactCount member. MAX_CONTACTS sets the capacity.
+
+A file record uses comma-separated fields in this order:
+name,phone,email
+
+Example:
+Alex Thomas,9876543210,alex@example.com
+
+Each contact is written on a separate line.
+
+5. FUNCTION-BY-FUNCTION EXPLANATION
+
+5.1 validname(AddressBook *addressBook, char *name, int ignoredContact)
+Checks that the name is not empty, contains only English letters and spaces, and does not duplicate another contact’s name. ignoredContact is skipped during editing so a contact can keep its current name.
+
+5.2 validphone(AddressBook *addressBook, char *phone, int ignoredContact)
+Checks that the phone field is non-empty, contains digits only, and is not already used by another contact. The function does not enforce a specific phone-number length.
+
+5.3 validemail(AddressBook *addressBook, char *email, int ignoredContact)
+Checks for duplicate email addresses and applies basic formatting rules: lowercase letters, digits, @ and dots only; exactly one @; a dot after @; no dot immediately before or after @; and a final lowercase letter. This is simplified validation, not a complete email-standard validator.
+
+5.4 findContactNumber(AddressBook *addressBook, char *action)
+Prompts the user to search by name, phone, or email, displays partial matches, and asks the user to select one. It returns the actual array index of the selected contact, or -1 if no valid selection is made.
+
+5.5 initialize(AddressBook *addressBook)
+Sets contactCount to zero and opens contacts.txt in read mode. It reads comma-separated contact records into the array until the file ends or MAX_CONTACTS is reached. If the file cannot be opened, it prints a message and returns with an empty address book.
+
+5.6 listContacts(AddressBook *addressBook)
+Prints all contacts currently held in memory in a table with name, phone, and email columns.
+
+5.7 saveAndExit(AddressBook *addressBook)
+Exits the program by calling exit(0). It does not save the contacts itself; the program must call saveContactsToFile() separately before this function if saving is required.
+
+5.8 searchContact(AddressBook *addressBook)
+Allows searching by name, phone, or email and displays every matching contact. Matching uses strcasestr(), so the search is a case-insensitive substring search where supported.
+
+5.9 createContact(AddressBook *addressBook)
+Checks that capacity remains, then asks for a name, phone, and email. Each field is validated, with up to three attempts per field. Once all fields pass validation, it copies them into the next array slot and increments contactCount.
+
+5.10 editContact(AddressBook *addressBook)
+Uses findContactNumber() to select a contact, then lets the user change the name, phone, email, or all fields. New values are validated before being copied into the selected record. When editing all fields, values are collected before the copies are made.
+
+5.11 deleteContact(AddressBook *addressBook)
+Selects a contact using findContactNumber(), displays it, and asks for confirmation. If confirmed, later records are shifted one position left and contactCount is reduced.
+
+5.12 saveContactsToFile(AddressBook *addressBook)
+Opens contacts.txt in write mode, writes every current contact as name,phone,email followed by a newline, closes the file, and reports success. Write mode replaces the existing file contents.
+
+6. PROGRAM WORKFLOW
+1. Start the application and call initialize() to load existing contacts from contacts.txt.
+2. Display the main menu (the menu code is not included in the supplied source file).
+3. The user selects an operation such as create, list, search, edit, delete, or exit.
+4. For create and edit operations, validate user-entered values before changing the in-memory address book.
+5. For delete, locate the selected contact and request confirmation before removing it.
+6. Call saveContactsToFile() when the application needs to persist changes.
+7. Exit the application.
+
+7. FILE HANDLING
+The program uses a relative path, contacts.txt. The file is read by initialize() using mode "r" and written by saveContactsToFile() using mode "w". A relative path points to the program’s current working directory, which may differ from the folder containing the source code.
+
+Important: createContact(), editContact(), and deleteContact() modify the in-memory data only. They do not automatically call saveContactsToFile(). The main/menu code should call the save function at suitable points, commonly after a successful change or before exiting, to avoid losing changes.
+
+8. INPUT VALIDATION RULES
+Name:
+- English letters and spaces only.
+- Cannot be empty.
+- Must not duplicate another contact’s name (case-insensitive).
+
+Phone:
+- Digits only.
+- Cannot be empty.
+- Must not duplicate another contact’s phone number.
+- No specific phone-number length is enforced.
+
+Email:
+- Lowercase letters, digits, @ and dots only.
+- Exactly one @ symbol.
+- Must contain a dot after @.
+- A dot cannot be immediately before or after @.
+- Must end with a lowercase letter.
+- This is a simplified email validation method.
+
+9. LIMITATIONS AND POINTS TO NOTE
+- The main menu and contact.h are not included in the supplied source file, so their exact definitions and menu behavior cannot be confirmed here.
+- saveAndExit() exits without saving; saving must be called separately.
+- Changes are not saved unless saveContactsToFile() is called.
+- Comma characters in names, phone values, or emails are not supported by the comma-separated file format.
+- The validation rules do not cover all real-world names, phone formats, or valid email addresses.
+- strcasecmp() and strcasestr() may not compile unchanged on every compiler, especially strict ISO C environments.
+- The return value from fprintf() is not checked, so disk-write failures after opening the file may not be reported.
+
+10. CONCLUSION
+The supplied code implements the core contact-management operations for a simple address book. It supports validation, searching, creating, listing, editing, deleting, loading, and saving contacts. For reliable use, the main program should ensure that saveContactsToFile() is called after changes, and the program should be tested with valid input, invalid input, duplicate records, empty files, and file-access errors.
+
+APPENDIX: FUNCTIONS AT A GLANCE
+- validname(): Validate name and uniqueness.
+- validphone(): Validate phone and uniqueness.
+- validemail(): Validate email and uniqueness.
+- findContactNumber(): Search and select one contact.
+- initialize(): Load contacts from file.
+- listContacts(): Display all contacts.
+- saveAndExit(): Terminate the program.
+- searchContact(): Display matching contacts.
+- createContact(): Add a new contact.
+- editContact(): Modify a contact.
+- deleteContact(): Remove a contact.
+- saveContactsToFile(): Write contacts to file.
